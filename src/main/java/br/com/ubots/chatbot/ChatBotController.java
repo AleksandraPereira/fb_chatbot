@@ -1,19 +1,13 @@
 package br.com.ubots.chatbot;
 
 
+import br.com.ubots.chatbot.dto.MessageRequest;
+import br.com.ubots.chatbot.utils.FaqAnswers;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
-
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
 
 @RestController
 public class ChatBotController {
@@ -32,8 +26,9 @@ public class ChatBotController {
 
 
     @PostMapping("/webhook")
-    public ResponseEntity<String> webhook(@RequestBody String message) {
-      System.out.println(message);
+    public ResponseEntity<String> webhook(@RequestBody MessageRequest request) {
+        FaqAnswers faqAnswers = new FaqAnswers();
+      System.out.println(request.message());
     return ResponseEntity.status(HttpStatus.OK).body("OK");
     }
 }

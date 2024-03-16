@@ -1,0 +1,16 @@
+{
+  "faq": [
+    {
+      "keywords": ["oi", "olá", "oie", "oii", "tudo", "bem"],
+      "answer": "Olá está tudo numa nice por aqui, que tal experimentar uma playlist nova de lo-fi?."
+    },
+    {
+      "keywords": ["qual", "cual", "como", "é", "e", "seu", "teu", "nome"],
+      "answer": "Me chamo Aleksandra."
+    },
+    {
+
+    }
+  ],
+  "default": "Hey! Pera lá... Vamos com calma, sou apenas um robô e não consegui entender a sua pergunta."
+}
