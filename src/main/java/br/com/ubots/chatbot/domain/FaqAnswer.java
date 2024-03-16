@@ -10,4 +10,8 @@ import java.util.List;
 public class FaqAnswer {
     private List<String> keywords;
     private String answer;
+
+    public static String getDefaultAnswer() {
+        return null;
+    }
 }

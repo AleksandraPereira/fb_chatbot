@@ -2,8 +2,8 @@ package br.com.ubots.chatbot;
 
 
 import br.com.ubots.chatbot.dto.MessageRequest;
-import br.com.ubots.chatbot.utils.FaqAnswers;
-import org.springframework.http.HttpStatus;
+import br.com.ubots.chatbot.dto.MessageResponse;
+import br.com.ubots.chatbot.services.FaqService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +12,12 @@ import java.util.Objects;
 @RestController
 public class ChatBotController {
     private static final String VERIFY_TOKEN = "batata";
+
+    final private FaqService faqService;
+
+    public ChatBotController(FaqService faqService){
+        this.faqService = faqService;
+    }
 
     @GetMapping("/webhook")
     public String verify( @RequestParam("hub.verify_token") String verifyToken, @RequestParam("hub.challenge")
@@ -26,10 +32,10 @@ public class ChatBotController {
 
 
     @PostMapping("/webhook")
-    public ResponseEntity<String> webhook(@RequestBody MessageRequest request) {
-        FaqAnswers faqAnswers = new FaqAnswers();
-      System.out.println(request.message());
-    return ResponseEntity.status(HttpStatus.OK).body("OK");
+    public ResponseEntity<MessageResponse> webhook(@RequestBody MessageRequest request) {
+        String answer = this.faqService.getAnswer(request.message());
+        MessageResponse response = new MessageResponse(answer);
+    return ResponseEntity.ok(response);
     }
 }
 
