@@ -3,8 +3,10 @@ package br.com.ubots.chatbot;
 
 import br.com.ubots.chatbot.dto.MessageResponse;
 import br.com.ubots.chatbot.services.FaqService;
+import br.com.ubots.chatbot.utils.WeatherApp;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,8 @@ public class ChatBotController {
     private static final String VERIFY_TOKEN = "batata";
 
     final private FaqService faqService;
+    @Autowired
+    private WeatherApp weatherApp;
 
     public ChatBotController(FaqService faqService){
         this.faqService = faqService;
@@ -46,6 +50,8 @@ public class ChatBotController {
         JSONObject message = firstMessaging.getJSONObject("message");
         //System.out.println(requestJson.toString(4));
 
+        String recipientId = firstMessaging.getJSONObject("sender").getString("id");
+
         String inputMessage = "";
         if (message.has("text")) {
             inputMessage = message.getString("text");
@@ -57,6 +63,15 @@ public class ChatBotController {
         MessageResponse messageModel = new MessageResponse();
 
         this.faqService.sendMessage(jsonObject, inputMessage, messageModel);
+
+        try {
+            String weather = weatherApp.getWeather();
+            System.out.println("O tempo atual é: " + weather);
+            weatherApp.sendToFacebook(weather, recipientId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         System.out.println(jsonObject);
         return ResponseEntity.ok().build();
     }
