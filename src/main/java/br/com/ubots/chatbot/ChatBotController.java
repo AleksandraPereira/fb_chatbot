@@ -1,12 +1,17 @@
 package br.com.ubots.chatbot;
 
 
-import br.com.ubots.chatbot.dto.MessageRequest;
 import br.com.ubots.chatbot.dto.MessageResponse;
 import br.com.ubots.chatbot.services.FaqService;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 @RestController
@@ -32,10 +37,32 @@ public class ChatBotController {
 
 
     @PostMapping("/webhook")
-    public ResponseEntity<MessageResponse> webhook(@RequestBody MessageRequest request) {
-        String answer = this.faqService.getAnswer(request.message());
-        MessageResponse response = new MessageResponse(answer);
-    return ResponseEntity.ok(response);
+    public ResponseEntity<MessageResponse> webhook(@RequestBody String body) throws IOException, URISyntaxException, InterruptedException {
+        JSONObject requestJson = new JSONObject(body);
+        JSONArray entryArray = requestJson.getJSONArray("entry");
+        JSONObject firstEntry = entryArray.getJSONObject(0);
+        JSONArray messagingArray = firstEntry.getJSONArray("messaging");
+        JSONObject firstMessaging = messagingArray.getJSONObject(0);
+        JSONObject message = firstMessaging.getJSONObject("message");
+        //System.out.println(requestJson.toString(4));
+
+        String inputMessage = "";
+        if (message.has("text")) {
+            inputMessage = message.getString("text");
+        }
+
+        String filePath = "C:\\Users\\aleks\\Downloads\\chatbot\\chatbot\\src\\main\\resources\\static\\answers.json";
+        String content = new String(Files.readAllBytes(Paths.get(filePath)));
+        JSONObject jsonObject = new JSONObject(content);
+        MessageResponse messageModel = new MessageResponse();
+
+        this.faqService.sendMessage(jsonObject, inputMessage, messageModel);
+        System.out.println(jsonObject);
+        return ResponseEntity.ok().build();
+    }
+
+    public FaqService getFaqService() {
+        return faqService;
     }
 }
 
