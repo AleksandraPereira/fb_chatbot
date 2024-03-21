@@ -13,11 +13,14 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class FaqService {
     final private FaqAnswers faqAnswers;
-    final private static String PAGE_ACCESS_TOKEN= "EAAS8uQG7KXsBOxEi2d8tGj1yhqojz3DUIHNbKLIsxbf0J8UBBCtfMVTxcEzZCNILEyIjb2i8X0wWlZChQWSd1bLmpLg0qmZBzVHPUGlleOYZAuC9pZCe86I35YsgbZAiRYZARJi56tXZAWLFL028xBkEydJ2ij33ZBkPrmdulOoRq0inQIi1dZAP5XfVZAjezNw4R6ZC";
+    final private static String PAGE_ACCESS_TOKEN = "EAAS8uQG7KXsBOxEi2d8tGj1yhqojz3DUIHNbKLIsxbf0J8UBBCtfMVTxcEzZCNILEyIjb2i8X0wWlZChQWSd1bLmpLg0qmZBzVHPUGlleOYZAuC9pZCe86I35YsgbZAiRYZARJi56tXZAWLFL028xBkEydJ2ij33ZBkPrmdulOoRq0inQIi1dZAP5XfVZAjezNw4R6ZC";
+
     @Autowired
     public FaqService(FaqAnswers faqAnswers) {
         this.faqAnswers = faqAnswers;
@@ -32,7 +35,9 @@ public class FaqService {
             String answer = faqItem.getString("answer");
 
             for (int j = 0; j < keywords.length(); j++) {
-                if (inputMessage.contains(keywords.getString(j))) {
+                Pattern pattern = Pattern.compile("\\b" + keywords.getString(j) + "\\b", Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(inputMessage);
+                if (matcher.find()) {
                     responseMessage = answer;
                     break;
                 }

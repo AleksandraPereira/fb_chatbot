@@ -48,7 +48,7 @@ public class ChatBotController {
         JSONArray messagingArray = firstEntry.getJSONArray("messaging");
         JSONObject firstMessaging = messagingArray.getJSONObject(0);
         JSONObject message = firstMessaging.getJSONObject("message");
-        //System.out.println(requestJson.toString(4));
+
 
         String recipientId = firstMessaging.getJSONObject("sender").getString("id");
 
