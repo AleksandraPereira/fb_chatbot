@@ -1,7 +1,7 @@
 
 package br.com.ubots.chatbot.utils;
 
-import org.json.JSONObject;
+import com.google.gson.Gson;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -9,14 +9,19 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class WeatherApp {
     private static final String API_KEY = "beec0bce9f3e21c7d0c26b135c731b4c";
-    private static final String cidade = "porto alegre";
-    private static final String link = "https://api.openweathermap.org/data/2.5/weather?q=porto%20alegre&appid=beec0bce9f3e21c7d0c26b135c731b4c";
+    public static final String cidade = "porto alegre";
 
-    public String getWeather() throws Exception {
+    public StringBuilder getWeather(String cidade) throws Exception {
+        String link = "https://api.openweathermap.org/data/2.5/weather?q=" + URLEncoder.encode(cidade, "UTF-8") + "&appid=" + API_KEY;
         URL url = new URL(link);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -28,18 +33,27 @@ public class WeatherApp {
 
         BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
         String output;
-        String response = "";
+        StringBuilder response = new StringBuilder();
         while ((output = br.readLine()) != null) {
-            response += output;
+            response.append(output);
         }
 
         conn.disconnect();
 
-        JSONObject jsonObject = new JSONObject(response);
-        String descricao = jsonObject.getJSONArray("weather").getJSONObject(0).getString("description");
-        double temperatura = jsonObject.getJSONObject("main").getDouble("temp") - 273.15;
+        ConversaoKelvinCelcius parser = new ConversaoKelvinCelcius();
+        return new StringBuilder(parser.converte(response.toString()));
+    }
 
-        return descricao + ", " + temperatura;
+
+    public void handleMessage(String message, String recipientId) throws Exception {
+        Pattern pattern = Pattern.compile("(previsão do tempo|previsão do tempo hoje|clima hoje|clima)");
+        Matcher matcher = pattern.matcher(message);
+
+        if (matcher.find()) {
+            String weather = String.valueOf(getWeather(cidade));
+            System.out.println("A previsão do tempo hoje é: " + weather);
+            sendToFacebook(weather, recipientId);
+        }
     }
 
     public void sendToFacebook(String response, String recipientId) throws Exception {
@@ -47,14 +61,19 @@ public class WeatherApp {
         URL obj = new URL(url);
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
-        //add request header
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
 
-        // Create the JSON object to send to the Facebook API
-        String jsonInputString = "{\"recipient\":{\"id\":\"" + recipientId + "\"},\"message\":{\"text\":\"" + response + "\"}}";
+        Gson gson = new Gson();
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", recipientId);
+        Map<String, String> messageMap = new HashMap<>();
+        messageMap.put("text", response);
+        Map<String, Object> jsonMap = new HashMap<>();
+        jsonMap.put("recipient", map);
+        jsonMap.put("message", messageMap);
+        String jsonInputString = gson.toJson(jsonMap);
 
-        // Send post request
         con.setDoOutput(true);
         try(OutputStream os = con.getOutputStream()) {
             byte[] input = jsonInputString.getBytes("utf-8");
@@ -64,6 +83,7 @@ public class WeatherApp {
         int responseCode = con.getResponseCode();
         System.out.println("\nSending 'POST' request to URL : " + url);
         System.out.println("Response Code : " + responseCode);
+
     }
 }
 

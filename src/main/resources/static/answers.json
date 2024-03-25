@@ -11,6 +11,10 @@
     {
       "keywords": ["quantos", "anos", "tu", "vc", "vx", "você", "voce", "tem"],
       "answer": "Sou um apenas um robô, capaz de responder mensagens, porém minha criadora, atualmente, possui 27 anos."
+    },
+    {
+      "keywords": ["previsão", "previsao", "clima", "do", "tempo", "hoje"],
+      "answer": "Aqui está a previsão do tempo para Porto Alegre."
     }
   ],
   "default": "Hey! Pera lá... Vamos com calma, sou apenas um robô e não consegui entender a sua pergunta."

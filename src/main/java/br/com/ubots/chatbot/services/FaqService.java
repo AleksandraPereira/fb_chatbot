@@ -2,8 +2,10 @@ package br.com.ubots.chatbot.services;
 
 import br.com.ubots.chatbot.dto.MessageResponse;
 import br.com.ubots.chatbot.utils.FaqAnswers;
-import org.json.JSONArray;
-import org.json.JSONObject;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,16 +28,16 @@ public class FaqService {
         this.faqAnswers = faqAnswers;
     }
 
-    public void sendMessage(JSONObject jsonObject, String inputMessage, MessageResponse messageModel) throws IOException, URISyntaxException, InterruptedException {
-        JSONArray faqArray = jsonObject.getJSONArray("faq");
+    public void sendMessage(JsonObject jsonObject, String inputMessage, MessageResponse messageModel) throws IOException, URISyntaxException, InterruptedException {
+        JsonArray faqArray = jsonObject.getAsJsonArray("faq");
         String responseMessage = "";
-        for (int i = 0; i < faqArray.length(); i++) {
-            JSONObject faqItem = faqArray.getJSONObject(i);
-            JSONArray keywords = faqItem.getJSONArray("keywords");
-            String answer = faqItem.getString("answer");
+        for (int i = 0; i < faqArray.size(); i++) {
+            JsonObject faqItem = faqArray.get(i).getAsJsonObject();
+            JsonArray keywords = faqItem.getAsJsonArray("keywords");
+            String answer = faqItem.get("answer").getAsString();
 
-            for (int j = 0; j < keywords.length(); j++) {
-                Pattern pattern = Pattern.compile("\\b" + keywords.getString(j) + "\\b", Pattern.CASE_INSENSITIVE);
+            for (int j = 0; j < keywords.size(); j++) {
+                Pattern pattern = Pattern.compile("\\b" + keywords.get(j).getAsString() + "\\b", Pattern.CASE_INSENSITIVE);
                 Matcher matcher = pattern.matcher(inputMessage);
                 if (matcher.find()) {
                     responseMessage = answer;
@@ -49,7 +51,7 @@ public class FaqService {
         }
 
         if (responseMessage.isEmpty()) {
-            responseMessage = jsonObject.getString("default");
+            responseMessage = jsonObject.get("default").getAsString();
         }
 
         MessageResponse.Recipient recipient = new MessageResponse.Recipient();
@@ -75,3 +77,4 @@ public class FaqService {
         System.out.println("Response body: " + response.body());
     }
 }
+

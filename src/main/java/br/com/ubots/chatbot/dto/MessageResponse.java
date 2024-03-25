@@ -1,6 +1,7 @@
 package br.com.ubots.chatbot.dto;
 
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 public class MessageResponse {
     private Recipient recipient;
@@ -8,8 +9,9 @@ public class MessageResponse {
     private Message message;
 
     public String responseBody() {
-        JSONObject json = new JSONObject(this);
-        return json.toString();
+        Gson gson = new Gson();
+        String json = gson.toJson(this);
+        return json;
     }
 
     public static class Recipient {
@@ -60,4 +62,3 @@ public class MessageResponse {
         this.message = message;
     }
 }
-

@@ -4,8 +4,9 @@ package br.com.ubots.chatbot;
 import br.com.ubots.chatbot.dto.MessageResponse;
 import br.com.ubots.chatbot.services.FaqService;
 import br.com.ubots.chatbot.utils.WeatherApp;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +16,8 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+
+import static br.com.ubots.chatbot.utils.WeatherApp.cidade;
 
 @RestController
 public class ChatBotController {
@@ -38,36 +41,34 @@ public class ChatBotController {
 
         }
     }
-
-
     @PostMapping("/webhook")
     public ResponseEntity<MessageResponse> webhook(@RequestBody String body) throws IOException, URISyntaxException, InterruptedException {
-        JSONObject requestJson = new JSONObject(body);
-        JSONArray entryArray = requestJson.getJSONArray("entry");
-        JSONObject firstEntry = entryArray.getJSONObject(0);
-        JSONArray messagingArray = firstEntry.getJSONArray("messaging");
-        JSONObject firstMessaging = messagingArray.getJSONObject(0);
-        JSONObject message = firstMessaging.getJSONObject("message");
+        Gson gson = new Gson();
+        JsonObject requestJson = gson.fromJson(body, JsonObject.class);
+        JsonArray entryArray = requestJson.getAsJsonArray("entry");
+        JsonObject firstEntry = entryArray.get(0).getAsJsonObject();
+        JsonArray messagingArray = firstEntry.getAsJsonArray("messaging");
+        JsonObject firstMessaging = messagingArray.get(0).getAsJsonObject();
+        JsonObject message = firstMessaging.getAsJsonObject("message");
 
-
-        String recipientId = firstMessaging.getJSONObject("sender").getString("id");
+        String recipientId = firstMessaging.getAsJsonObject("sender").get("id").getAsString();
 
         String inputMessage = "";
         if (message.has("text")) {
-            inputMessage = message.getString("text");
+            inputMessage = message.get("text").getAsString();
         }
 
         String filePath = "C:\\Users\\aleks\\Downloads\\chatbot\\chatbot\\src\\main\\resources\\static\\answers.json";
         String content = new String(Files.readAllBytes(Paths.get(filePath)));
-        JSONObject jsonObject = new JSONObject(content);
+        JsonObject jsonObject = gson.fromJson(content, JsonObject.class);
         MessageResponse messageModel = new MessageResponse();
 
         this.faqService.sendMessage(jsonObject, inputMessage, messageModel);
 
         try {
-            String weather = weatherApp.getWeather();
-            System.out.println("O tempo atual é: " + weather);
-            weatherApp.sendToFacebook(weather, recipientId);
+            StringBuilder weather = weatherApp.getWeather(cidade);
+            System.out.println("O clima hoje é: " + weather);
+            weatherApp.handleMessage(inputMessage, recipientId);
         } catch (Exception e) {
             e.printStackTrace();
         }
